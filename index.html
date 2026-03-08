@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Ferie 2026 💛</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700;900&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fffbf4;
+  --card: #ffffff;
+  --ocean: #0f4c75;
+  --wave: #1b6ca8;
+  --sun: #f4a11a;
+  --sun-light: #fef3dc;
+  --coral: #e8624a;
+  --mint: #2eb886;
+  --text: #1a1a2e;
+  --muted: #8a9bb0;
+  --border: #e8edf3;
+  --shadow: 0 4px 24px rgba(15,76,117,0.10);
+  --radius: 18px;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { height:100%; font-family:'Instrument Sans',sans-serif; background:var(--bg); color:var(--text); overflow:hidden; }
+
+.app { display:flex; flex-direction:column; height:100dvh; max-width:480px; margin:0 auto; background:var(--bg); }
+
+/* HEADER */
+.app-header { background:var(--ocean); padding:1rem 1.25rem 0.75rem; flex-shrink:0; position:relative; overflow:hidden; }
+.app-header::after { content:'☀️'; position:absolute; right:-0.5rem; top:-0.5rem; font-size:4.5rem; opacity:0.12; transform:rotate(15deg); pointer-events:none; }
+.header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.9rem; }
+.app-title { font-family:'Fraunces',serif; font-size:1.4rem; color:white; font-weight:900; line-height:1; }
+.app-title span { color:var(--sun); }
+.user-pill { display:flex; align-items:center; gap:0.4rem; background:rgba(255,255,255,0.12); border-radius:30px; padding:0.3rem 0.75rem 0.3rem 0.4rem; cursor:pointer; border:1.5px solid rgba(255,255,255,0.2); transition:background 0.15s; }
+.user-pill:hover { background:rgba(255,255,255,0.2); }
+.user-pill .avatar { font-size:1.1rem; }
+.user-pill .uname { font-size:0.78rem; color:rgba(255,255,255,0.9); font-weight:500; }
+.user-pill .chevron { font-size:0.6rem; color:rgba(255,255,255,0.5); }
+.treasurer-badge { display:inline-flex; align-items:center; gap:0.3rem; background:var(--sun); color:#5a3a00; font-size:0.68rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; padding:0.22rem 0.65rem; border-radius:20px; margin-bottom:0.6rem; }
+.summary-strip { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.5rem; }
+.strip-card { background:rgba(255,255,255,0.1); border-radius:12px; padding:0.6rem 0.75rem; border:1px solid rgba(255,255,255,0.15); }
+.strip-label { font-size:0.64rem; color:rgba(255,255,255,0.55); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.2rem; }
+.strip-value { font-family:'Fraunces',serif; font-size:1.05rem; font-weight:700; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.strip-value.accent { color:var(--sun); }
+
+/* SYNC indicator */
+.sync-dot { width:8px; height:8px; border-radius:50%; background:#aaa; display:inline-block; margin-left:6px; transition:background 0.3s; }
+.sync-dot.synced { background:var(--mint); }
+.sync-dot.syncing { background:var(--sun); animation:pulse 0.8s infinite; }
+.sync-dot.error { background:var(--coral); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* TABS */
+.tabs { display:flex; background:var(--card); border-bottom:1px solid var(--border); flex-shrink:0; }
+.tab { flex:1; padding:0.8rem 0.5rem; text-align:center; font-size:0.78rem; font-weight:500; color:var(--muted); cursor:pointer; border-bottom:2.5px solid transparent; transition:all 0.15s; background:none; border-top:none; border-left:none; border-right:none; font-family:'Instrument Sans',sans-serif; }
+.tab.active { color:var(--ocean); border-bottom-color:var(--ocean); }
+.tab-icon { font-size:1rem; display:block; margin-bottom:0.15rem; }
+
+/* CONTENT */
+.content { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.page { display:none; padding:1rem; }
+.page.active { display:block; }
+.section-header { font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin:0.5rem 0 0.6rem; }
+
+/* PERSON ROWS */
+.person-row { display:flex; align-items:center; background:var(--card); border-radius:14px; padding:0.85rem 1rem; margin-bottom:0.6rem; box-shadow:0 2px 8px rgba(15,76,117,0.06); gap:0.85rem; }
+.person-avatar-wrap { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0; background:var(--sun-light); }
+.person-avatar-wrap.treasurer { background:linear-gradient(135deg,var(--sun),#e8a430); box-shadow:0 0 0 3px rgba(244,161,26,0.3); }
+.person-info { flex:1; min-width:0; }
+.person-name { font-weight:600; font-size:0.9rem; }
+.person-role { font-size:0.7rem; color:var(--muted); }
+.person-numbers { text-align:right; }
+.person-paid { font-family:'Fraunces',serif; font-size:1rem; font-weight:700; color:var(--ocean); }
+.person-balance { font-size:0.72rem; font-weight:600; margin-top:0.15rem; }
+.bal-pos { color:var(--mint); } .bal-neg { color:var(--coral); } .bal-zero { color:var(--muted); }
+
+/* FORM */
+.form-card { background:var(--card); border-radius:var(--radius); padding:1.25rem; box-shadow:var(--shadow); margin-bottom:1rem; }
+.form-section-label { font-size:0.7rem; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:0.5rem; }
+.input-field { width:100%; border:1.5px solid var(--border); border-radius:11px; padding:0.75rem 1rem; font-family:'Instrument Sans',sans-serif; font-size:0.95rem; color:var(--text); background:var(--bg); outline:none; transition:border-color 0.15s,background 0.15s; margin-bottom:0.85rem; }
+.input-field:focus { border-color:var(--wave); background:white; }
+.input-row { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; }
+.input-row .input-field { margin-bottom:0; }
+.input-row-wrap { margin-bottom:0.85rem; }
+
+/* Category */
+.cat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.5rem; margin-bottom:0.85rem; }
+.cat-btn { border:1.5px solid var(--border); border-radius:11px; padding:0.55rem 0.4rem; text-align:center; cursor:pointer; background:var(--bg); transition:all 0.15s; font-family:'Instrument Sans',sans-serif; }
+.cat-btn:hover { border-color:var(--wave); }
+.cat-btn.active { border-color:var(--ocean); background:#e8f0fb; }
+.cat-btn .cat-icon { font-size:1.2rem; display:block; }
+.cat-btn .cat-name { font-size:0.65rem; color:var(--muted); margin-top:0.15rem; }
+.cat-btn.active .cat-name { color:var(--ocean); font-weight:600; }
+
+/* Payer */
+.payer-scroll { display:flex; gap:0.5rem; overflow-x:auto; padding-bottom:0.5rem; margin-bottom:0.85rem; scrollbar-width:none; }
+.payer-scroll::-webkit-scrollbar { display:none; }
+.payer-chip { flex-shrink:0; border:1.5px solid var(--border); border-radius:30px; padding:0.4rem 0.85rem; font-size:0.8rem; cursor:pointer; background:var(--bg); white-space:nowrap; transition:all 0.15s; font-family:'Instrument Sans',sans-serif; display:flex; align-items:center; gap:0.3rem; }
+.payer-chip:hover { border-color:var(--wave); }
+.payer-chip.active { background:var(--ocean); color:white; border-color:var(--ocean); }
+
+/* Receipt upload */
+.receipt-area { border:2px dashed var(--border); border-radius:13px; padding:1rem; text-align:center; cursor:pointer; margin-bottom:0.85rem; transition:border-color 0.15s, background 0.15s; position:relative; }
+.receipt-area:hover { border-color:var(--wave); background:#f0f8ff; }
+.receipt-area.has-image { border-color:var(--mint); background:#f0fdf8; border-style:solid; }
+.receipt-area input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.receipt-icon { font-size:1.8rem; margin-bottom:0.3rem; }
+.receipt-label { font-size:0.8rem; color:var(--muted); }
+.receipt-preview { width:100%; max-height:120px; object-fit:cover; border-radius:8px; margin-top:0.5rem; display:none; }
+.receipt-preview.visible { display:block; }
+
+/* AI scan button */
+.ai-scan-btn { width:100%; border:1.5px solid var(--wave); border-radius:11px; padding:0.65rem; font-family:'Instrument Sans',sans-serif; font-size:0.85rem; font-weight:600; color:var(--wave); background:white; cursor:pointer; margin-bottom:0.85rem; display:flex; align-items:center; justify-content:center; gap:0.5rem; transition:all 0.15s; }
+.ai-scan-btn:hover { background:#e8f0fb; }
+.ai-scan-btn:disabled { opacity:0.5; cursor:not-allowed; }
+.ai-scan-btn .spinner { width:14px; height:14px; border:2px solid var(--wave); border-top-color:transparent; border-radius:50%; animation:spin 0.7s linear infinite; display:none; }
+.ai-scan-btn.scanning .spinner { display:block; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.submit-btn { width:100%; background:linear-gradient(135deg,var(--ocean),var(--wave)); color:white; border:none; border-radius:13px; padding:0.9rem; font-family:'Instrument Sans',sans-serif; font-size:0.95rem; font-weight:600; cursor:pointer; transition:opacity 0.15s,transform 0.1s; letter-spacing:0.02em; }
+.submit-btn:hover { opacity:0.9; }
+.submit-btn:active { transform:scale(0.98); }
+.submit-btn:disabled { opacity:0.5; cursor:not-allowed; }
+
+/* EXPENSE LIST */
+.expense-item { background:var(--card); border-radius:14px; padding:0.9rem 1rem; display:flex; align-items:center; gap:0.85rem; margin-bottom:0.6rem; box-shadow:0 2px 8px rgba(15,76,117,0.05); animation:fadeUp 0.2s ease; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+.exp-icon { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+.exp-info { flex:1; min-width:0; }
+.exp-desc { font-weight:500; font-size:0.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.exp-meta { font-size:0.7rem; color:var(--muted); margin-top:0.15rem; }
+.exp-right { text-align:right; flex-shrink:0; }
+.exp-amount { font-family:'Fraunces',serif; font-size:1rem; font-weight:700; color:var(--ocean); }
+.exp-share { font-size:0.68rem; color:var(--muted); }
+.exp-receipt-thumb { width:32px; height:32px; border-radius:6px; object-fit:cover; flex-shrink:0; cursor:pointer; border:1.5px solid var(--border); }
+
+/* TREASURER */
+.treasurer-header { background:linear-gradient(135deg,#5a3a00,#c9960c); border-radius:var(--radius); padding:1.25rem; margin-bottom:1rem; color:white; position:relative; overflow:hidden; }
+.treasurer-header::after { content:'👑'; position:absolute; right:1rem; top:50%; transform:translateY(-50%); font-size:3.5rem; opacity:0.2; }
+.treasurer-header h2 { font-family:'Fraunces',serif; font-size:1.2rem; margin-bottom:0.25rem; }
+.treasurer-header p { font-size:0.78rem; opacity:0.8; }
+.settlement-card { background:var(--card); border-radius:var(--radius); padding:1.25rem; box-shadow:var(--shadow); margin-bottom:1rem; }
+.settlement-title { font-family:'Fraunces',serif; font-size:1rem; color:var(--ocean); margin-bottom:0.85rem; }
+.settlement-row { display:flex; align-items:center; justify-content:space-between; padding:0.75rem 0; border-bottom:1px solid var(--border); gap:0.5rem; }
+.settlement-row:last-child { border-bottom:none; }
+.settlement-transfer { display:flex; align-items:center; gap:0.4rem; font-size:0.85rem; flex:1; min-width:0; }
+.s-arrow { color:var(--muted); font-size:0.8rem; }
+.settlement-amount { font-family:'Fraunces',serif; font-size:1.05rem; font-weight:700; color:var(--coral); flex-shrink:0; }
+.settled-btn { background:none; border:1.5px solid var(--border); border-radius:8px; padding:0.3rem 0.6rem; font-size:0.7rem; cursor:pointer; color:var(--muted); font-family:'Instrument Sans',sans-serif; transition:all 0.15s; flex-shrink:0; }
+.settled-btn:hover { border-color:var(--mint); color:var(--mint); }
+.settled-btn.done { background:var(--mint); border-color:var(--mint); color:white; }
+.cat-totals { display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; margin-bottom:1rem; }
+.cat-total-card { background:var(--card); border-radius:13px; padding:0.85rem; box-shadow:0 2px 8px rgba(15,76,117,0.05); display:flex; align-items:center; gap:0.6rem; }
+.cat-total-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+.cat-total-info .name { font-size:0.72rem; color:var(--muted); }
+.cat-total-info .val { font-family:'Fraunces',serif; font-size:0.95rem; font-weight:700; color:var(--ocean); }
+
+/* Category bg */
+.bg-transport{background:#fef3e2} .bg-mad{background:#e8f8f0} .bg-overnatning{background:#e8f0fb} .bg-oplevelser{background:#fde8f3} .bg-indkøb{background:#f3e8fe} .bg-andet{background:#f0f0f0}
+
+/* Modal */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:flex-end; z-index:100; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal-sheet { background:white; border-radius:24px 24px 0 0; padding:1.5rem; width:100%; transform:translateY(100%); transition:transform 0.25s ease; max-height:85vh; overflow-y:auto; }
+.modal-overlay.open .modal-sheet { transform:translateY(0); }
+.modal-title { font-family:'Fraunces',serif; font-size:1.1rem; text-align:center; margin-bottom:1.25rem; color:var(--ocean); }
+.user-option { display:flex; align-items:center; gap:1rem; padding:0.85rem 1rem; border-radius:13px; cursor:pointer; transition:background 0.12s; margin-bottom:0.4rem; }
+.user-option:hover { background:var(--bg); }
+.user-option.selected { background:#e8f0fb; }
+.u-avatar { font-size:1.6rem; }
+.u-info .u-name { font-weight:600; font-size:0.92rem; }
+.u-info .u-role { font-size:0.72rem; color:var(--muted); }
+.u-check { margin-left:auto; color:var(--ocean); font-size:1.1rem; }
+
+/* Image lightbox */
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,0.9); display:flex; align-items:center; justify-content:center; z-index:200; display:none; }
+.lightbox.open { display:flex; }
+.lightbox img { max-width:95%; max-height:90%; border-radius:12px; object-fit:contain; }
+.lightbox-close { position:absolute; top:1rem; right:1rem; color:white; font-size:2rem; cursor:pointer; background:rgba(0,0,0,0.5); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+
+/* Empty / loading */
+.empty { text-align:center; padding:3rem 1rem; color:var(--muted); }
+.empty .e-icon { font-size:2.5rem; margin-bottom:0.5rem; }
+.empty p { font-size:0.85rem; }
+.loading-overlay { position:fixed; inset:0; background:var(--ocean); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:300; transition:opacity 0.4s; }
+.loading-overlay.hidden { opacity:0; pointer-events:none; }
+.loading-overlay .l-icon { font-size:3rem; margin-bottom:1rem; animation:bob 1.5s ease-in-out infinite; }
+@keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.loading-overlay p { color:white; font-size:0.9rem; opacity:0.8; }
+
+.error-shake { animation:shake 0.3s ease; border-color:var(--coral) !important; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
+
+.toast { position:fixed; bottom:5rem; left:50%; transform:translateX(-50%); background:#1a1a2e; color:white; padding:0.65rem 1.25rem; border-radius:30px; font-size:0.82rem; z-index:400; opacity:0; transition:opacity 0.2s; pointer-events:none; white-space:nowrap; }
+.toast.show { opacity:1; }
+
+@media(max-width:380px) {
+  .input-row { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Loading screen -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="l-icon">🏖️</div>
+  <p>Henter feriedata…</p>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <div class="lightbox-close">✕</div>
+  <img id="lightboxImg" src="" alt="Kvittering">
+</div>
+
+<div class="app">
+  <!-- HEADER -->
+  <div class="app-header">
+    <div class="header-top">
+      <div>
+        <div class="app-title">Ferie <span>2026</span> <span class="sync-dot" id="syncDot"></span></div>
+      </div>
+      <div class="user-pill" onclick="openUserModal()">
+        <span class="avatar" id="headerAvatar">👩</span>
+        <span class="uname" id="headerName">Tone</span>
+        <span class="chevron">▼</span>
+      </div>
+    </div>
+    <div id="treasurerBadge" class="treasurer-badge" style="display:none">👑 Kasserer</div>
+    <div class="summary-strip">
+      <div class="strip-card">
+        <div class="strip-label">Total</div>
+        <div class="strip-value" id="hTotal">0 kr</div>
+      </div>
+      <div class="strip-card">
+        <div class="strip-label">Din andel</div>
+        <div class="strip-value accent" id="hShare">0 kr</div>
+      </div>
+      <div class="strip-card">
+        <div class="strip-label">Du har betalt</div>
+        <div class="strip-value" id="hPaid">0 kr</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('overblik')"><span class="tab-icon">👥</span>Overblik</button>
+    <button class="tab" onclick="showTab('tilfoej')"><span class="tab-icon">➕</span>Tilføj</button>
+    <button class="tab" onclick="showTab('udgifter')"><span class="tab-icon">🧾</span>Udgifter</button>
+    <button class="tab" id="kassererTab" onclick="showTab('kasserer')" style="display:none"><span class="tab-icon">👑</span>Kasserer</button>
+  </div>
+
+  <div class="content">
+
+    <!-- OVERBLIK -->
+    <div class="page active" id="page-overblik">
+      <div class="section-header">Rejsedeltagere</div>
+      <div id="personsList"></div>
+    </div>
+
+    <!-- TILFØJ -->
+    <div class="page" id="page-tilfoej">
+      <div class="form-card">
+        <!-- Receipt upload -->
+        <div class="form-section-label">📷 Kvittering (valgfrit)</div>
+        <div class="receipt-area" id="receiptArea">
+          <input type="file" id="receiptInput" accept="image/*" capture="environment" onchange="handleReceiptSelect(event)">
+          <div class="receipt-icon">📄</div>
+          <div class="receipt-label">Tryk for at tage billede eller vælg fra bibliotek</div>
+          <img class="receipt-preview" id="receiptPreview" src="" alt="Preview">
+        </div>
+
+        <button class="ai-scan-btn" id="aiScanBtn" onclick="scanReceipt()" disabled>
+          <div class="spinner"></div>
+          🤖 Læs kvittering automatisk med AI
+        </button>
+
+        <div class="form-section-label">Beskrivelse</div>
+        <input class="input-field" type="text" id="fDesc" placeholder="F.eks. Færgebilletter…">
+
+        <div class="input-row-wrap">
+          <div class="input-row">
+            <div>
+              <div class="form-section-label">Beløb (kr)</div>
+              <input class="input-field" type="number" id="fAmount" placeholder="0" min="0" step="1">
+            </div>
+            <div>
+              <div class="form-section-label">Dato</div>
+              <input class="input-field" type="date" id="fDate">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section-label">Kategori</div>
+        <div class="cat-grid" id="catGrid"></div>
+
+        <div class="form-section-label">Hvem betalte?</div>
+        <div class="payer-scroll" id="payerScroll"></div>
+
+        <button class="submit-btn" id="submitBtn" onclick="addExpense()">Tilføj udgift ✓</button>
+      </div>
+    </div>
+
+    <!-- UDGIFTER -->
+    <div class="page" id="page-udgifter">
+      <div id="expenseList"></div>
+    </div>
+
+    <!-- KASSERER -->
+    <div class="page" id="page-kasserer">
+      <div class="treasurer-header">
+        <h2>Kasserer-overblik</h2>
+        <p>Hej Tone 👋 Her er det fulde regnskab</p>
+      </div>
+      <div class="section-header">Udgifter per kategori</div>
+      <div class="cat-totals" id="catTotals"></div>
+      <div class="settlement-card">
+        <div class="settlement-title">⚖️ Afregning</div>
+        <div id="settlementList"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- USER MODAL -->
+<div class="modal-overlay" id="userModal" onclick="closeUserModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-title">Hvem bruger appen?</div>
+    <div id="userOptions"></div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCqWr4yefEnePINZexAps4oapBVT21rgXA",
+  authDomain: "ferie-2026.firebaseapp.com",
+  projectId: "ferie-2026",
+  storageBucket: "ferie-2026.firebasestorage.app",
+  messagingSenderId: "650481528959",
+  appId: "1:650481528959:web:32e6435a8dfa3b1c9e0f4a"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const storage = getStorage(app);
+
+// ── CONSTANTS ─────────────────────────────────────────
+const PERSONS = [
+  { id:'tone',   name:'Tone',   avatar:'👩', role:'Mor · Kasserer', treasurer:true },
+  { id:'anders', name:'Anders', avatar:'👨', role:'Far' },
+  { id:'ketty',  name:'Ketty',  avatar:'👵', role:'Bedstemor' },
+  { id:'ib',     name:'Ib',     avatar:'👴', role:'Farfar' },
+  { id:'anette', name:'Anette', avatar:'👵', role:'Farmor' },
+];
+
+const CATEGORIES = [
+  { id:'transport',   icon:'🚗', name:'Transport' },
+  { id:'mad',         icon:'🍽️', name:'Mad & drikke' },
+  { id:'overnatning', icon:'🏨', name:'Overnatning' },
+  { id:'oplevelser',  icon:'🎡', name:'Oplevelser' },
+  { id:'indkøb',      icon:'🛍️', name:'Indkøb' },
+  { id:'andet',       icon:'📌', name:'Andet' },
+];
+
+const SHARES = 5;
+
+window.state = {
+  currentUser: localStorage.getItem('ferie_user') || 'tone',
+  expenses: {},
+  settled: {},
+  selectedCat: 'transport',
+  selectedPayer: localStorage.getItem('ferie_user') || 'tone',
+  receiptFile: null,
+  receiptBase64: null,
+};
+
+// ── FIREBASE LISTENERS ────────────────────────────────
+setSyncStatus('syncing');
+
+onValue(ref(db, 'expenses'), snap => {
+  state.expenses = snap.val() || {};
+  render();
+  setSyncStatus('synced');
+  hideLoading();
+}, err => {
+  setSyncStatus('error');
+  hideLoading();
+  showToast('⚠️ Kunne ikke hente data');
+});
+
+onValue(ref(db, 'settled'), snap => {
+  state.settled = snap.val() || {};
+  render();
+});
+
+// ── INIT ──────────────────────────────────────────────
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.add('hidden');
+}
+
+buildCatGrid();
+buildPayerScroll();
+buildUserOptions();
+document.getElementById('fDate').valueAsDate = new Date();
+
+// ── BUILD UI ──────────────────────────────────────────
+function buildCatGrid() {
+  document.getElementById('catGrid').innerHTML = CATEGORIES.map(c => `
+    <div class="cat-btn${c.id===state.selectedCat?' active':''}" onclick="selectCat('${c.id}',this)">
+      <span class="cat-icon">${c.icon}</span>
+      <span class="cat-name">${c.name}</span>
+    </div>`).join('');
+}
+
+function buildPayerScroll() {
+  document.getElementById('payerScroll').innerHTML = PERSONS.map(p => `
+    <div class="payer-chip${p.id===state.selectedPayer?' active':''}" onclick="selectPayer('${p.id}',this)">
+      ${p.avatar} ${p.name}
+    </div>`).join('');
+}
+
+function buildUserOptions() {
+  document.getElementById('userOptions').innerHTML = PERSONS.map(p => `
+    <div class="user-option${p.id===state.currentUser?' selected':''}" onclick="switchUser('${p.id}')">
+      <span class="u-avatar">${p.avatar}</span>
+      <div class="u-info"><div class="u-name">${p.name}</div><div class="u-role">${p.role}</div></div>
+      ${p.id===state.currentUser?'<span class="u-check">✓</span>':''}
+    </div>`).join('');
+}
+
+// ── RENDER ────────────────────────────────────────────
+function render() {
+  const expenses = Object.values(state.expenses);
+  const total = expenses.reduce((s,e) => s+e.amount, 0);
+  const share = total / SHARES;
+  const me = PERSONS.find(p => p.id===state.currentUser);
+  const myPaid = expenses.filter(e => e.payer===state.currentUser).reduce((s,e) => s+e.amount, 0);
+
+  document.getElementById('headerAvatar').textContent = me.avatar;
+  document.getElementById('headerName').textContent = me.name;
+  document.getElementById('hTotal').textContent = fmt(total);
+  document.getElementById('hShare').textContent = fmt(share);
+  document.getElementById('hPaid').textContent = fmt(myPaid);
+
+  const isTreasurer = me.treasurer;
+  document.getElementById('treasurerBadge').style.display = isTreasurer ? 'inline-flex' : 'none';
+  document.getElementById('kassererTab').style.display = isTreasurer ? 'flex' : 'none';
+
+  renderPersons(expenses, share);
+  renderExpenses(expenses);
+  if (isTreasurer) renderTreasurer(expenses, share);
+}
+
+function renderPersons(expenses, share) {
+  document.getElementById('personsList').innerHTML = PERSONS.map(p => {
+    const paid = expenses.filter(e => e.payer===p.id).reduce((s,e) => s+e.amount, 0);
+    const bal = paid - share;
+    const balClass = bal > 0.5 ? 'bal-pos' : bal < -0.5 ? 'bal-neg' : 'bal-zero';
+    const balText = bal > 0.5 ? `+${fmt(bal)} til gode` : bal < -0.5 ? `${fmt(bal)} skylder` : '✓ Lige';
+    return `
+      <div class="person-row">
+        <div class="person-avatar-wrap${p.treasurer?' treasurer':''}">${p.avatar}</div>
+        <div class="person-info">
+          <div class="person-name">${p.name}${p.treasurer?' 👑':''}</div>
+          <div class="person-role">${p.role}</div>
+        </div>
+        <div class="person-numbers">
+          <div class="person-paid">${fmt(paid)}</div>
+          <div class="person-balance ${balClass}">${balText}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderExpenses(expenses) {
+  const list = document.getElementById('expenseList');
+  if (expenses.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="e-icon">🏖️</div><p>Ingen udgifter endnu</p></div>`;
+    return;
+  }
+  const sorted = [...expenses].sort((a,b) => b.timestamp - a.timestamp);
+  list.innerHTML = sorted.map(e => {
+    const cat = CATEGORIES.find(c => c.id===e.category) || CATEGORIES[5];
+    const payer = PERSONS.find(p => p.id===e.payer);
+    const receiptThumb = e.receiptUrl
+      ? `<img class="exp-receipt-thumb" src="${e.receiptUrl}" alt="Kvittering" onclick="openLightbox('${e.receiptUrl}')">`
+      : '';
+    return `
+      <div class="expense-item">
+        <div class="exp-icon bg-${cat.id}">${cat.icon}</div>
+        <div class="exp-info">
+          <div class="exp-desc">${e.desc}</div>
+          <div class="exp-meta">${payer?.avatar} ${payer?.name} · ${e.date}</div>
+        </div>
+        ${receiptThumb}
+        <div class="exp-right">
+          <div class="exp-amount">${fmt(e.amount)}</div>
+          <div class="exp-share">${fmt(e.amount/SHARES)}/andel</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderTreasurer(expenses, share) {
+  document.getElementById('catTotals').innerHTML = CATEGORIES.map(c => {
+    const total = expenses.filter(e => e.category===c.id).reduce((s,e) => s+e.amount, 0);
+    if (total === 0) return '';
+    return `
+      <div class="cat-total-card">
+        <div class="cat-total-icon bg-${c.id}">${c.icon}</div>
+        <div class="cat-total-info"><div class="name">${c.name}</div><div class="val">${fmt(total)}</div></div>
+      </div>`;
+  }).join('');
+
+  const balances = {};
+  PERSONS.forEach(p => {
+    const paid = expenses.filter(e => e.payer===p.id).reduce((s,e) => s+e.amount, 0);
+    balances[p.id] = paid - share;
+  });
+
+  const settlements = calcSettlements(balances);
+  const sl = document.getElementById('settlementList');
+  if (settlements.length === 0) {
+    sl.innerHTML = `<div style="text-align:center;padding:1.5rem;color:var(--muted)">✅ Alle er i balance!</div>`;
+    return;
+  }
+  sl.innerHTML = settlements.map(s => {
+    const done = state.settled[s.key];
+    return `
+      <div class="settlement-row">
+        <div class="settlement-transfer">
+          <span>${s.from.avatar} ${s.from.name}</span>
+          <span class="s-arrow">→</span>
+          <span>${s.to.avatar} ${s.to.name}</span>
+        </div>
+        <div class="settlement-amount">${fmt(s.amount)}</div>
+        <button class="settled-btn${done?' done':''}" onclick="toggleSettled('${s.key}')">
+          ${done?'✓ Betalt':'Afregn'}
+        </button>
+      </div>`;
+  }).join('');
+}
+
+function calcSettlements(balances) {
+  const result = [];
+  const pos = Object.entries(balances).filter(([,v]) => v>0.5).map(([id,v]) => ({id,v})).sort((a,b) => b.v-a.v);
+  const neg = Object.entries(balances).filter(([,v]) => v<-0.5).map(([id,v]) => ({id,v})).sort((a,b) => a.v-b.v);
+  let pi=0, ni=0;
+  while (pi<pos.length && ni<neg.length) {
+    const cr=pos[pi], db=neg[ni];
+    const amt=Math.min(cr.v,-db.v);
+    if (amt>0.5) result.push({ from:PERSONS.find(p=>p.id===db.id), to:PERSONS.find(p=>p.id===cr.id), amount:amt, key:`${db.id}_${cr.id}` });
+    cr.v-=amt; db.v+=amt;
+    if (cr.v<0.5) pi++;
+    if (db.v>-0.5) ni++;
+  }
+  return result;
+}
+
+// ── RECEIPT & AI ──────────────────────────────────────
+window.handleReceiptSelect = function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  state.receiptFile = file;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    state.receiptBase64 = e.target.result.split(',')[1];
+    const preview = document.getElementById('receiptPreview');
+    preview.src = e.target.result;
+    preview.classList.add('visible');
+    document.getElementById('receiptArea').classList.add('has-image');
+    document.getElementById('receiptArea').querySelector('.receipt-label').textContent = '✓ Billede valgt';
+    document.getElementById('aiScanBtn').disabled = false;
+  };
+  reader.readAsDataURL(file);
+};
+
+window.scanReceipt = async function() {
+  if (!state.receiptBase64) return;
+  const btn = document.getElementById('aiScanBtn');
+  btn.classList.add('scanning');
+  btn.disabled = true;
+  btn.childNodes[2].textContent = ' Analyserer kvittering…';
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: state.receiptFile.type, data: state.receiptBase64 } },
+            { type: 'text', text: 'Dette er en kvittering. Svar KUN med JSON på denne form: {"desc":"kort beskrivelse af hvad der er købt (max 40 tegn)","amount":BELØB_SOM_TAL,"date":"YYYY-MM-DD"} - ingen andre ord. Brug det totale beløb. Hvis dato ikke findes, brug dagens dato. Beløb skal være et tal uden valuta.' }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content?.find(b => b.type==='text')?.text || '';
+    const clean = text.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+
+    if (parsed.desc) document.getElementById('fDesc').value = parsed.desc;
+    if (parsed.amount) document.getElementById('fAmount').value = Math.round(parsed.amount);
+    if (parsed.date) document.getElementById('fDate').value = parsed.date;
+
+    showToast('🤖 AI læste kvitteringen!');
+  } catch(err) {
+    showToast('⚠️ Kunne ikke læse kvittering — udfyld manuelt');
+  }
+
+  btn.classList.remove('scanning');
+  btn.disabled = false;
+  btn.childNodes[2].textContent = ' Læs kvittering automatisk med AI';
+};
+
+// ── ADD EXPENSE ───────────────────────────────────────
+window.addExpense = async function() {
+  const desc = document.getElementById('fDesc').value.trim();
+  const amount = parseFloat(document.getElementById('fAmount').value);
+  const date = document.getElementById('fDate').value;
+
+  if (!desc) { shake('fDesc'); return; }
+  if (!amount || amount<=0) { shake('fAmount'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Gemmer…';
+  setSyncStatus('syncing');
+
+  try {
+    let receiptUrl = null;
+
+    // Upload receipt if exists
+    if (state.receiptFile) {
+      const filename = `receipts/${Date.now()}_${state.receiptFile.name}`;
+      const storageRef = sRef(storage, filename);
+      await uploadBytes(storageRef, state.receiptFile);
+      receiptUrl = await getDownloadURL(storageRef);
+    }
+
+    await push(ref(db, 'expenses'), {
+      desc, amount, date,
+      category: state.selectedCat,
+      payer: state.selectedPayer,
+      receiptUrl,
+      timestamp: Date.now()
+    });
+
+    // Reset form
+    document.getElementById('fDesc').value = '';
+    document.getElementById('fAmount').value = '';
+    document.getElementById('fDate').valueAsDate = new Date();
+    document.getElementById('receiptPreview').classList.remove('visible');
+    document.getElementById('receiptArea').classList.remove('has-image');
+    document.getElementById('receiptArea').querySelector('.receipt-label').textContent = 'Tryk for at tage billede eller vælg fra bibliotek';
+    document.getElementById('receiptInput').value = '';
+    document.getElementById('aiScanBtn').disabled = true;
+    state.receiptFile = null;
+    state.receiptBase64 = null;
+
+    showToast('✓ Udgift tilføjet!');
+    showTab('udgifter');
+  } catch(err) {
+    showToast('⚠️ Fejl — prøv igen');
+    setSyncStatus('error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Tilføj udgift ✓';
+};
+
+// ── SETTLED ───────────────────────────────────────────
+window.toggleSettled = async function(key) {
+  const current = state.settled[key];
+  await update(ref(db, 'settled'), { [key]: current ? null : true });
+};
+
+// ── USER SWITCH ───────────────────────────────────────
+window.switchUser = function(id) {
+  state.currentUser = id;
+  state.selectedPayer = id;
+  localStorage.setItem('ferie_user', id);
+  buildUserOptions();
+  buildPayerScroll();
+  closeUserModal();
+  render();
+  const me = PERSONS.find(p => p.id===id);
+  if (!me.treasurer) showTab('overblik');
+};
+
+// ── UI HELPERS ────────────────────────────────────────
+window.selectCat = function(id, el) {
+  state.selectedCat = id;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+};
+
+window.selectPayer = function(id, el) {
+  state.selectedPayer = id;
+  document.querySelectorAll('.payer-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+};
+
+window.showTab = function(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  const tabEl = document.querySelector(`[onclick="showTab('${name}')"]`);
+  if (tabEl) tabEl.classList.add('active');
+};
+
+window.openUserModal = function() { buildUserOptions(); document.getElementById('userModal').classList.add('open'); };
+window.closeUserModal = function(e) { if (!e || e.target===document.getElementById('userModal')) document.getElementById('userModal').classList.remove('open'); };
+
+window.openLightbox = function(url) {
+  document.getElementById('lightboxImg').src = url;
+  document.getElementById('lightbox').classList.add('open');
+};
+window.closeLightbox = function() { document.getElementById('lightbox').classList.remove('open'); };
+
+function setSyncStatus(status) {
+  const dot = document.getElementById('syncDot');
+  dot.className = 'sync-dot ' + status;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function shake(id) {
+  const el = document.getElementById(id);
+  el.classList.remove('error-shake');
+  void el.offsetWidth;
+  el.classList.add('error-shake');
+  el.focus();
+  setTimeout(() => el.classList.remove('error-shake'), 400);
+}
+
+function fmt(n) {
+  return new Intl.NumberFormat('da-DK', {style:'currency', currency:'DKK', maximumFractionDigits:0}).format(n);
+}
+
+</script>
+</body>
+</html>
