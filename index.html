@@ -548,3 +548,158 @@ function calcSettlements(b){
   while(pi<pos.length&&ni<neg.length){const cr=pos[pi],db=neg[ni],amt=Math.min(cr.v,-db.v);if(amt>0.5)r.push({from:PERSONS.find(p=>p.id===db.id),to:PERSONS.find(p=>p.id===cr.id),amount:amt,key:`${db.id}_${cr.id}`});cr.v-=amt;db.v+=amt;if(cr.v<0.5)pi++;if(db.v>-0.5)ni++;}
   return r;
 }
+window.scanReceipt = async function() {
+  if(!S.receiptBase64) return;
+  const btn=document.getElementById('aiScanBtn');
+  btn.classList.add('scanning');btn.disabled=true;btn.childNodes[2].textContent=' Analyserer…';
+  try {
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:S.receiptFile.type,data:S.receiptBase64}},{type:'text',text:'Kvittering. Svar KUN med JSON: {"desc":"maks 40 tegn","amount":TAL,"date":"YYYY-MM-DD"}'}]}]})});
+    const data=await res.json();
+    const parsed=JSON.parse(data.content?.find(b=>b.type==='text')?.text.replace(/```json|```/g,'').trim()||'{}');
+    if(parsed.desc)   document.getElementById('fDesc').value=parsed.desc;
+    if(parsed.amount) document.getElementById('fAmount').value=Math.round(parsed.amount);
+    if(parsed.date)   document.getElementById('fDate').value=parsed.date;
+    showToast('🤖 AI læste kvitteringen!');
+  } catch { showToast('⚠️ Kunne ikke læse — udfyld manuelt'); }
+  btn.classList.remove('scanning');btn.disabled=false;btn.childNodes[2].textContent=' Læs kvittering automatisk med AI';
+};
+
+// ── PAID TOGGLE ───────────────────────────────────────
+window.togglePaid = function() {
+  S.isPaid=!S.isPaid;
+  document.getElementById('ptSwitch').classList.toggle('on',S.isPaid);
+  document.getElementById('ptLabel').textContent=S.isPaid?'✅ Betalt hjemmefra':'⏳ Ikke betalt endnu';
+};
+window.toggleEditPaid = function() {
+  S.editingPaid=!S.editingPaid;
+  document.getElementById('ePtSwitch').classList.toggle('on',S.editingPaid);
+  document.getElementById('ePtLabel').textContent=S.editingPaid?'✅ Betalt hjemmefra':'⏳ Ikke betalt endnu';
+};
+
+// ── ADD EXPENSE ───────────────────────────────────────
+window.addExpense = async function() {
+  const desc=document.getElementById('fDesc').value.trim();
+  const amount=parseFloat(document.getElementById('fAmount').value);
+  const date=document.getElementById('fDate').value;
+  if(!desc){shake('fDesc');return;}
+  if(!amount||amount<=0){shake('fAmount');return;}
+
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true;btn.textContent='Gemmer…';setSyncStatus('syncing');
+  try {
+    let receiptUrl=null;
+    if(S.receiptFile){
+      const sr=sRef(storage,`receipts/${Date.now()}_${S.receiptFile.name}`);
+      await uploadBytes(sr,S.receiptFile);
+      receiptUrl=await getDownloadURL(sr);
+    }
+    const node=S.budget==='pre'?'expenses_pre':'expenses_trip';
+    const rec={desc,amount,date,category:S.selectedCat,payer:S.selectedPayer,receiptUrl,timestamp:Date.now()};
+    if(S.budget==='pre') rec.paid=S.isPaid;
+    await push(ref(db,node),rec);
+
+    document.getElementById('fDesc').value='';
+    document.getElementById('fAmount').value='';
+    document.getElementById('fDate').valueAsDate=new Date();
+    document.getElementById('receiptPreview').classList.remove('visible');
+    document.getElementById('receiptArea').classList.remove('has-image');
+    document.querySelector('#receiptArea .receipt-label').textContent='Tryk for at tage billede eller vælg fra bibliotek';
+    document.getElementById('receiptInput').value='';
+    document.getElementById('aiScanBtn').disabled=true;
+    S.receiptFile=null;S.receiptBase64=null;
+    S.isPaid=false;document.getElementById('ptSwitch').classList.remove('on');
+    document.getElementById('ptLabel').textContent='⏳ Ikke betalt endnu';
+    showToast('✓ Udgift tilføjet!');showTab('udgifter');
+  } catch(err){console.error(err);showToast('⚠️ Fejl — prøv igen');setSyncStatus('error');}
+  btn.disabled=false;
+  btn.textContent=S.budget==='pre'?'Tilføj fast udgift ✓':'Tilføj udgift ✓';
+};
+
+// ── EDIT / DELETE ─────────────────────────────────────
+window.openEditModal = function(key, budget) {
+  const e=(budget==='pre'?S.expensesPre:S.expensesTrip)[key];
+  if(!e) return;
+  S.editingKey=key;S.editingBudget=budget;S.editingPayer=e.payer;S.editingPaid=e.paid||false;
+  document.getElementById('eDesc').value=e.desc;
+  document.getElementById('eAmount').value=e.amount;
+  document.getElementById('eDate').value=e.date;
+  document.getElementById('ePaidToggleWrap').style.display=budget==='pre'?'block':'none';
+  document.getElementById('ePtSwitch').classList.toggle('on',S.editingPaid);
+  document.getElementById('ePtLabel').textContent=S.editingPaid?'✅ Betalt hjemmefra':'⏳ Ikke betalt endnu';
+  buildPayerScroll('ePayerScroll',e.payer);
+  document.getElementById('editModal').classList.add('open');
+};
+
+window.closeEditModal = function(e) {
+  if(!e||e.target===document.getElementById('editModal')) document.getElementById('editModal').classList.remove('open');
+};
+
+window.saveEdit = async function() {
+  const key=S.editingKey;if(!key) return;
+  const desc=document.getElementById('eDesc').value.trim();
+  const amount=parseFloat(document.getElementById('eAmount').value);
+  const date=document.getElementById('eDate').value;
+  if(!desc||!amount||amount<=0){showToast('⚠️ Udfyld alle felter');return;}
+  const node=S.editingBudget==='pre'?'expenses_pre':'expenses_trip';
+  const upd={desc,amount,date,payer:S.editingPayer};
+  if(S.editingBudget==='pre') upd.paid=S.editingPaid;
+  setSyncStatus('syncing');
+  await update(ref(db,`${node}/${key}`),upd);
+  document.getElementById('editModal').classList.remove('open');
+  showToast('✓ Udgift opdateret!');
+};
+
+window.confirmDelete = async function() {
+  if(!S.editingKey) return;
+  if(!confirm('Er du sikker på at du vil slette denne udgift?')) return;
+  const node=S.editingBudget==='pre'?'expenses_pre':'expenses_trip';
+  setSyncStatus('syncing');
+  await remove(ref(db,`${node}/${S.editingKey}`));
+  document.getElementById('editModal').classList.remove('open');
+  S.editingKey=null;
+  showToast('🗑️ Udgift slettet');
+};
+
+// ── SETTLED ───────────────────────────────────────────
+window.toggleSettled = async function(key,mode) {
+  const node=mode==='pre'?'settled_pre':'settled_trip';
+  const cur=(mode==='pre'?S.settledPre:S.settledTrip)[key];
+  await update(ref(db,node),{[key]:cur?null:true});
+};
+
+// ── USER ──────────────────────────────────────────────
+window.switchUser = function(id) {
+  S.currentUser=id;S.selectedPayer=id;localStorage.setItem('ferie_user',id);
+  buildUserOptions();buildPayerScroll('payerScroll');closeUserModal();render();
+  if(!PERSONS.find(p=>p.id===id).treasurer) showTab('overblik');
+};
+
+// ── UI HELPERS ────────────────────────────────────────
+window.selectCat = function(id,el) {
+  S.selectedCat=id;
+  document.querySelectorAll('#catGrid .cat-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+};
+window.selectPayer = function(id,el,containerId) {
+  if(containerId==='ePayerScroll') S.editingPayer=id; else S.selectedPayer=id;
+  document.querySelectorAll(`#${containerId} .payer-chip`).forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+};
+window.showTab = function(name) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  document.querySelector(`[onclick="showTab('${name}')"]`)?.classList.add('active');
+};
+window.openUserModal  = function(){buildUserOptions();document.getElementById('userModal').classList.add('open');};
+window.closeUserModal = function(e){if(!e||e.target===document.getElementById('userModal'))document.getElementById('userModal').classList.remove('open');};
+window.openLightbox   = function(url){document.getElementById('lightboxImg').src=url;document.getElementById('lightbox').classList.add('open');};
+window.closeLightbox  = function(){document.getElementById('lightbox').classList.remove('open');};
+
+function setSyncStatus(s){document.getElementById('syncDot').className='sync-dot '+s;}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function shake(id){const el=document.getElementById(id);el.classList.remove('error-shake');void el.offsetWidth;el.classList.add('error-shake');el.focus();setTimeout(()=>el.classList.remove('error-shake'),400);}
+function fmt(n){return new Intl.NumberFormat('da-DK',{style:'currency',currency:'DKK',maximumFractionDigits:0}).format(n);}
+</script>
+</body>
+</html>
