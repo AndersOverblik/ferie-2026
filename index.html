@@ -548,6 +548,22 @@ function calcSettlements(b){
   while(pi<pos.length&&ni<neg.length){const cr=pos[pi],db=neg[ni],amt=Math.min(cr.v,-db.v);if(amt>0.5)r.push({from:PERSONS.find(p=>p.id===db.id),to:PERSONS.find(p=>p.id===cr.id),amount:amt,key:`${db.id}_${cr.id}`});cr.v-=amt;db.v+=amt;if(cr.v<0.5)pi++;if(db.v>-0.5)ni++;}
   return r;
 }
+
+// ── RECEIPT ───────────────────────────────────────────
+window.handleReceiptSelect = function(ev) {
+  const file=ev.target.files[0]; if(!file) return;
+  S.receiptFile=file;
+  new FileReader().onload = e => {
+    S.receiptBase64=e.target.result.split(',')[1];
+    document.getElementById('receiptPreview').src=e.target.result;
+    document.getElementById('receiptPreview').classList.add('visible');
+    document.getElementById('receiptArea').classList.add('has-image');
+    document.querySelector('#receiptArea .receipt-label').textContent='✓ Billede valgt';
+    document.getElementById('aiScanBtn').disabled=false;
+  };
+  const r=new FileReader(); r.onload=e=>{S.receiptBase64=e.target.result.split(',')[1];const prev=document.getElementById('receiptPreview');prev.src=e.target.result;prev.classList.add('visible');document.getElementById('receiptArea').classList.add('has-image');document.querySelector('#receiptArea .receipt-label').textContent='✓ Billede valgt';document.getElementById('aiScanBtn').disabled=false;};r.readAsDataURL(file);
+};
+
 window.scanReceipt = async function() {
   if(!S.receiptBase64) return;
   const btn=document.getElementById('aiScanBtn');
