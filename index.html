@@ -500,7 +500,9 @@ function renderExpenses(expenses, isPre, isTreasurer) {
     const canEdit = isTreasurer || e.payer===S.currentUser;
     const thumb = e.receiptUrl ? `<img class="exp-receipt-thumb" src="${e.receiptUrl}" alt="" onclick="event.stopPropagation();openLightbox('${e.receiptUrl}')">` : '';
     const badge = isPre ? `<div class="pre-paid-badge ${e.paid?'yes':'no'}">${e.paid?'✓ Betalt':'⏳ Afventer'}</div>` : '';
-    return `<div class="expense-item" onclick="${canEdit?`openEditModal('${e._key}','${isPre?'pre':'trip}')`:'void 0'}" style="cursor:${canEdit?'pointer':'default'}">
+    const budgetKey = isPre ? 'pre' : 'trip';
+    const onclickVal = canEdit ? "openEditModal('" + e._key + "','" + budgetKey + "')" : 'void 0';
+    return `<div class="expense-item" onclick="${onclickVal}" style="cursor:${canEdit?'pointer':'default'}">
       <div class="exp-icon bg-${cat.id}">${cat.icon}</div>
       <div class="exp-info">
         <div class="exp-desc">${e.desc}</div>
